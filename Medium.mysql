@@ -32,3 +32,30 @@ left join
 from employee) e  
 on d.id = e.DepartmentId 
 where rank_s =1
+
+-- # 534. Game Play Analysis III
+select player_id  , event_date ,
+sum(games_played ) over (partition by player_id  order by event_date ) as games_played_so_far 
+from Activity 
+
+-- # 550. Game Play Analysis IV
+-- #  1.Logged in again on the day after the day they first (correct)
+select round( count(  tab.loggedforwd)  /(select count(distinct player_id ) from activity) ,2)   fraction   
+from 
+(
+select player_id, 
+case when dense_rank() over (partition by player_id  order by event_date ) = 2  then player_id else NULL end as loggedforwd, 
+case when event_date - LAG(event_date) over (partition by player_id  order by event_date ) = 1 then 1 else NULL end as diff  
+from activity
+) tab
+where diff is not null
+-- # 2.Logged in for at least two consecutive days (what if )
+select round( count(  tab.loggedforwd)  /(select count(distinct player_id ) from activity) ,2)   fraction   
+from 
+(
+select player_id, 
+case when event_date - LAG(event_date) over (partition by player_id  order by event_date ) = 1 
+or   event_date -  LEAD(event_date)  over (partition by player_id  order by event_date ) = -1  then player_id else NULL end as loggedforwd 
+from activi
+  
+  
