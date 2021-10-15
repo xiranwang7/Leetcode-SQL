@@ -57,5 +57,22 @@ select player_id,
 case when event_date - LAG(event_date) over (partition by player_id  order by event_date ) = 1 
 or   event_date -  LEAD(event_date)  over (partition by player_id  order by event_date ) = -1  then player_id else NULL end as loggedforwd 
 from activi
+ 
+-- # 570. Managers with at Least 5 Direct Reports
+select name from employee
+where ID in (select ManagerId from employee group by ManagerId having count(*)>=5  );
+
+-- # 574. Winning Candidate  
+select c.name from candidate c
+inner join  (  
+    
+    select CandidateId, count(*) as ct from Vote group by CandidateId order by ct desc limit 1
+            ) tab
+on tab.CandidateId =c.id 
   
-  
+-- # 578. Get Highest Answer Rate Question  
+select question_id   as survey_log   
+from survey_log 
+group by question_id
+order by sum(action  ='answer' ) /sum(action  ='show' ) desc
+limit 1
