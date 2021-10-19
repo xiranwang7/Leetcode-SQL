@@ -76,3 +76,92 @@ from survey_log
 group by question_id
 order by sum(action  ='answer' ) /sum(action  ='show' ) desc
 limit 1
+  
+-- # 580. Count Student Number in Departments
+ select dept_name ,  ifnull(  student_number ,0) student_number  from department d
+left join (select dept_id , 
+           count( student_id  )   as student_number  from student  group by dept_id ) st
+on st.dept_id = d.dept_id   
+group by  dept_name
+order by student_number desc , dept_name 
+  
+-- # 585. Investments in 2016
+ --   # (1)
+select case when TIV_2016<>TIV_2015 then TIV_2016 else null end as TIV_2016  from 
+(
+select sum(ins0.TIV_2016 ) TIV_2016 , sum(ins0.TIV_2015 )  TIV_2015 from insurance ins0 
+inner join 
+(select LAT,  LON , count( * ) as loc_count  from insurance 
+group by  LAT,  LON  #having loc_count=1
+) ins
+on ins.LAT =ins0.LAT and   ins.LON = ins0.LON
+inner join 
+(select TIV_2015, count( * ) as TIV_2015_count  from insurance 
+group by  TIV_2015 #having TIV_2015_count>1
+) ins1
+on ins1.TIV_2015 =ins0.TIV_2015  
+ where loc_count=1 and ins1.TIV_2015_count>1
+) tab
+--   # (2)
+# select sum(TIV_2016) TIV_2016
+# from insurance
+# where TIV_2015 in (select TIV_2015 from insurance group by TIV_2015 having count(PID) > 1) -- Have the same TIV_2015 value as one or more other policyholders.
+# and (LAT,LON) in (select LAT,LON from insurance group by LAT,LON having count(PID) = 1) -- Are not located in the same city as any other policyholder  
+
+  
+--  # 602. Friend Requests II: Who Has the Most Friends
+-- # UNION ALL allow dupes union will not allow 
+
+--   # (1)
+select id, count(*) as num from 
+(select requester_id as id from request_accepted 
+UNION ALL 
+select accepter_id as id from request_accepted ) tab
+group by id
+order by num desc
+limit 1
+  
+--   # (2)
+# with tab0 as ( 
+# select id, count(*) as num from 
+# (select requester_id as id from request_accepted 
+# UNION ALL
+# select accepter_id as id from request_accepted ) tab
+# group by id
+# order by num desc
+# )
+# select id, num from tab0 where num = (select max(num) from tab0 )
+
+  
+-- # 608. Tree Node  
+--  #(1)   
+ select distinct  id as Id,  
+case when  p_id is null then 'Root' 
+when c_id is null then 'Leaf'
+else 'Inner'
+end as Type 
+from( 
+select a.id,a.p_id p_id ,b.id as c_id from tree a
+left join tree b on b.p_id =a.id  
+    ) tab 
+    
+--  #(2) 
+    select
+    id,
+    case when p_id is null then 'Root'
+         when p_id is not null and id in (select distinct p_id from tree) then 'Inner'
+         else 'Leaf'
+    end as Type
+from tree
+order by id
+
+-- # 612. Shortest Distance in a Plane  
+--   # cross join  
+  select 
+#ROUND(SQRT((POW((p1.x-p2.x), 2) + POW((p1.y-p2.y), 2))),2)  AS 'dist'
+ ROUND(SQRT(MIN((POW(p1.x - p2.x, 2) + POW(p1.y - p2.y, 2)))), 2) AS shortest
+
+from point_2d p1 , point_2d p2
+where (p1.x,p1.y) != (p2.x, p2.y)
+
+
