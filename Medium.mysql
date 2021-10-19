@@ -108,10 +108,8 @@ on ins1.TIV_2015 =ins0.TIV_2015
 # where TIV_2015 in (select TIV_2015 from insurance group by TIV_2015 having count(PID) > 1) -- Have the same TIV_2015 value as one or more other policyholders.
 # and (LAT,LON) in (select LAT,LON from insurance group by LAT,LON having count(PID) = 1) -- Are not located in the same city as any other policyholder  
 
-  
 --  # 602. Friend Requests II: Who Has the Most Friends
 -- # UNION ALL allow dupes union will not allow 
-
 --   # (1)
 select id, count(*) as num from 
 (select requester_id as id from request_accepted 
@@ -120,7 +118,6 @@ select accepter_id as id from request_accepted ) tab
 group by id
 order by num desc
 limit 1
-  
 --   # (2)
 # with tab0 as ( 
 # select id, count(*) as num from 
@@ -143,8 +140,7 @@ end as Type
 from( 
 select a.id,a.p_id p_id ,b.id as c_id from tree a
 left join tree b on b.p_id =a.id  
-    ) tab 
-    
+    ) tab   
 --  #(2) 
     select
     id,
@@ -164,4 +160,72 @@ order by id
 from point_2d p1 , point_2d p2
 where (p1.x,p1.y) != (p2.x, p2.y)
 
+-- # 614. Second Degree Follower
+select f1.follower ,count( distinct f2.follower   )    as num from follow f1
+inner join follow f2
+on f1.follower =f2.followee       
+# where f2.follower is not NULL
+group by f1.follower 
+  
+  
+--  # 626. Exchange Seats
+select 
+case when (select count(*)%2 as rmd from seat)=0 then row_even else row_odds  end as id
+,student 
+from 
+(
+select 
+student ,
+case when id = (select max(id) from seat ) then id 
+when id%2=0 then id-1
+else id+1 end as row_odds , 
 
+case when id%2=0 then id-1
+else id+1 end as row_even 
+from seat
+
+) tab
+order by id
+  
+ 
+-- # 1045. Customers Who Bought All Products
+select 
+customer_id
+from 
+(
+select customer_id,  count(distinct product_key ) as pk_dis   from customer 
+group by  customer_id 
+) tab
+where tab.pk_dis =  (select count(distinct  product_key)    from Product ) 
+ # group by customer_id
+  
+  
+-- # 1070. Product Sales Analysis III 
+#  (1)
+select product_id, year as first_year, quantity, price    from 
+(select  a.product_id , a.year ,  a.quantity ,a.price  , dense_rank() over (partition by product_id order by year asc) as rank_num 
+from Sales a) tab1
+where rank_num=1
+#  (2)
+# select 
+# a.product_id , a1.first_year,  a.quantity ,a.price 
+# from
+# Sales a
+# inner join 
+# (
+# select product_id , min(year ) as first_year from Sales 
+# group by product_id
+# ) a1  on a.product_id = a1.product_id and first_year= a.year 
+# left join Product p on p.product_id  =  a1.product_id
+
+  
+-- # 1077. Project Employees III
+select project_id, employee_id
+(
+select p.project_id, p.employee_id ,e.experience_years ,
+dense_rank() over (partition by p.project_id order by experience_years desc  ) as Rank_num
+from prject p
+left  join Employee e
+on e.employee_id = p.employee_id 
+) tab
+where Rank_num=1
