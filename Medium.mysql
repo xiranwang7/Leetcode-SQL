@@ -229,3 +229,91 @@ left  join Employee e
 on e.employee_id = p.employee_id 
 ) tab
 where Rank_num=1
+  
+  
+-- # 1098. Unpopular Books 
+select book_id ,name from Books 
+where 
+book_id not in 
+(
+select book_id  from Orders
+group by book_id 
+having sum(case when timestampdiff(year,dispatch_date,'2019-06-23' ) < 1 then quantity  else 0 end ) >=10
+ union
+(select book_id from Books where timestampdiff(month,available_from,'2019-06-23' ) < 1 
+)
+)
+  
+  
+-- # 1098. Unpopular Books 
+ select  login_date    , count(distinct user_id) as user_count from 
+(
+    select user_id, min(activity_date) as login_date from traffic 
+ where # timestampdiff(day,activity_date,'2019-06-30')<=90 and 
+ activity='login'
+ group by user_id
+ having timestampdiff(day,login_date,'2019-06-30')<=90 
+) o
+group by  login_date
+
+  
+-- #1112. Highest Grade For Each Student
+  
+-- #(1)  
+  select student_id, course_id, grade from
+( 
+select *,
+rank() over (partition by student_id order by grade desc, course_id) ranks
+from Enrollments
+) tab
+where ranks = 1
+-- #(2)
+ select e0.student_id,min(e.course_id) as course_id ,e0.grade from 
+(select    student_id ,max( grade) as grade 
+ from enrollments 
+group by student_id
+order by student_id
+ ) e0
+left join Enrollments e 
+on e.student_id = e0.student_id and e.grade=e0.grade
+group by e0.student_id,e0.grade
+  
+-- 1126. Active Businesses  
+  select a.business_id from events a 
+left join (
+select event_type, avg(occurences) as avg_o from events
+group by event_type
+) b on a.event_type=b.event_type
+where b.avg_o<a.occurences 
+group by  a.business_id
+having count(  a.business_id )>1
+ 
+--   #1132. Reported Posts II
+select round(avg(removed_posts/total_posts*100),2) average_daily_percent from
+(
+select  
+a.action_date,
+count(distinct r.post_id) removed_posts , 
+count(distinct a.post_id)  total_posts
+from Actions a
+left join Removals r on a.post_id=r.post_id
+where a.extra ='spam' AND a.action = 'report'
+group by action_date
+ ) tab
+
+--  # 1149. Article Views II
+ select distinct  viewer_id  as id from 
+( 
+select viewer_id, view_date,count(distinct article_id )  as ct from views
+group by viewer_id, view_date
+having ct>1
+    ) tab
+-- # 1158. Market Analysis I
+ select u.user_id as buyer_id ,u.join_date,
+ifnull(ct,0) as orders_in_2019 from users u
+left join 
+(select buyer_id, year(order_date) as yr, count(distinct order_id ) as ct from  Orders
+group by buyer_id ,yr
+ having yr=2019
+) o
+on o.buyer_id=u.user_id
