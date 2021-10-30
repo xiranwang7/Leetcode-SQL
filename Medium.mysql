@@ -335,3 +335,35 @@ where change_date<='2019-08-16'
 select product_id, coalesce(10,new_price) as 'price'
 from Products
 where product_id not in (select product_id from tab);
+    
+  
+-- # 1174. Immediate Food Delivery II  
+ select 
+round(sum(d.order_date  = d.customer_pref_delivery_date )/count(*)*100,2) immediate_percentage 
+from Delivery d
+inner join 
+(
+select  customer_id ,  min(order_date ) as order_date from Delivery 
+group by customer_id
+) tab  on d.customer_id = tab.customer_id and d.order_date =tab.order_date 
+
+  
+--  # 1193. Monthly Transactions I
+ select  app1.month , app1.country ,app1.trans_count 
+, ifnull(approved_count,0) approved_count
+,trans_total_amount
+,  ifnull( approved_total_amount,0)  approved_total_amount
+
+from
+(
+select left(trans_date ,7) as month,  country  , count(*) as trans_count,  sum(amount) trans_total_amount 
+from Transactions  
+group by month ,country
+) app1
+left join 
+(select  left( trans_date ,7) as month, country ,count(*)  approved_count ,sum(amount )  approved_total_amount  
+ from Transactions 
+where state ='approved'  
+ group by month ,country 
+) app
+on  app1.month = app.month and app1.country =app.country
