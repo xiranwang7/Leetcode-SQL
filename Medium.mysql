@@ -367,3 +367,18 @@ where state ='approved'
  group by month ,country 
 ) app
 on  app1.month = app.month and app1.country =app.country
+
+ 
+-- # 1204. Last Person to Fit in the Bus
+ select person_name  from
+(
+ select person_id ,turn, person_name ,weight, sum(weight) over( order by turn )  as cum_weight 
+ from Queue  order by cum_weight desc
+) tab
+where cum_weight<=1000
+limit 1;
+
+# SELECT   person_name
+# FROM     ( SELECT   *, (Sum(weight) OVER(ORDER BY turn) <= 1000) in_limit FROM  queue ) a
+# WHERE    in_limit = 1
+# ORDER BY turn DESC limit 1
