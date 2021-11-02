@@ -400,3 +400,27 @@ group by month, country
 having approved_count>0 or approved_amount>0 or chargeback_count>0 or chargeback_amount>0
 
 
+-- # 1212. Team Scores in Football Tournament 
+select a.team_id, a.team_name, host_num+guest_num as num_points     from 
+
+(select t.team_id ,t.team_name , 
+sum(case when h.host_goals-h.guest_goals  >0 then 3
+         when h.host_goals-h.guest_goals  =0 then 1
+         else 0 end ) host_num     
+from Teams t 
+left join Matches h on t.team_id   =h.host_team  
+group by t.team_id ,t.team_name
+) a
+left join 
+(select t.team_id ,t.team_name , 
+sum(case when g.guest_goals  -g.host_goals>0 then 3
+         when g.guest_goals  -g.host_goals=0 then 1
+         else 0 end) guest_num    
+from Teams t
+left join Matches g on t.team_id   =g.guest_team         
+group by t.team_id ,t.team_name) b
+on a.team_id = b.team_id
+group by a.team_id, a.team_name
+order by num_points desc , team_id asc
+
+
