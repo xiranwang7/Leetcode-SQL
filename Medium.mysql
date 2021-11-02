@@ -347,13 +347,12 @@ select  customer_id ,  min(order_date ) as order_date from Delivery
 group by customer_id
 ) tab  on d.customer_id = tab.customer_id and d.order_date =tab.order_date 
 
-  
+
 --  # 1193. Monthly Transactions I
  select  app1.month , app1.country ,app1.trans_count 
 , ifnull(approved_count,0) approved_count
 ,trans_total_amount
 ,  ifnull( approved_total_amount,0)  approved_total_amount
-
 from
 (
 select left(trans_date ,7) as month,  country  , count(*) as trans_count,  sum(amount) trans_total_amount 
@@ -382,3 +381,22 @@ limit 1;
 # FROM     ( SELECT   *, (Sum(weight) OVER(ORDER BY turn) <= 1000) in_limit FROM  queue ) a
 # WHERE    in_limit = 1
 # ORDER BY turn DESC limit 1
+  
+ 
+-- # 1205. Monthly Transactions II
+ select 
+left(trans_date, 7 ) month ,country ,
+sum(case when state  = 'approved' then 1 else 0 end) approved_count,
+sum(case when state  = 'approved' then amount else 0 end) approved_amount,
+sum(case when state  = 'chargebacks' then 1 else 0 end)  chargeback_count,
+sum(case when state  = 'chargebacks' then amount else 0 end)  chargeback_amount
+from
+(select t.id ,t.country ,'chargebacks' as state,t.amount,c.trans_date 
+from Transactions  t
+inner join Chargebacks c
+on c.trans_id = t.id
+union select * from  Transactions ) tab
+group by month, country
+having approved_count>0 or approved_amount>0 or chargeback_count>0 or chargeback_amount>0
+
+
