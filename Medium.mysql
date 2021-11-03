@@ -423,4 +423,10 @@ on a.team_id = b.team_id
 group by a.team_id, a.team_name
 order by num_points desc , team_id asc
 
-
+-- # 1270. All People Report to the Given Manager
+select distinct page_id recommended_page from
+(select user1_id from Friendship f1 where f1.user2_id=1
+union select user2_id from Friendship f2 where  f2.user1_id=1
+ ) usr
+left join Likes on user_id = user1_id
+where page_id not in (select page_id from likes where user_id =1 ) and page_id is not null
