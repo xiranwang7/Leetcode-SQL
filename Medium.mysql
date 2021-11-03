@@ -430,3 +430,21 @@ union select user2_id from Friendship f2 where  f2.user1_id=1
  ) usr
 left join Likes on user_id = user1_id
 where page_id not in (select page_id from likes where user_id =1 ) and page_id is not null
+  
+-- # 1270. All People Report to the Given Manager
+select e.employee_id 
+from Employees e 
+left join Employees e1 on e.manager_id = e1.employee_id 
+left join Employees e2 on e1.manager_id = e2.employee_id 
+where (e1.manager_id = 1 or e2.manager_id = 1 ) and e.employee_id !=1
+  
+-- # 1285. Find the Start and End Number of Continuous Ranges 
+ select min(log_id) as start_id, max(log_id) as end_id  from 
+(
+select l1.log_id ,
+dense_rank() over(order by  l1.log_id  asc)  as rnk ,
+    l1.log_id - (dense_rank() over(order by  l1.log_id  asc) ) as diff_rnk 
+    from logs l1 
+) tab
+    group by diff_rnk
+    
