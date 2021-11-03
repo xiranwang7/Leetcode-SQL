@@ -447,4 +447,13 @@ dense_rank() over(order by  l1.log_id  asc)  as rnk ,
     from logs l1 
 ) tab
     group by diff_rnk
-    
+ 
+  
+-- # 1308. Running Total for Different Gender
+select gender , day, sum(total) over(partition by gender order by gender , day  ) as total from 
+( 
+select gender , day ,sum(score_points )   as total 
+from Scores 
+group by gender , day
+order by gender , day 
+) tab
