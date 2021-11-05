@@ -457,3 +457,57 @@ from Scores
 group by gender , day
 order by gender , day 
 ) tab
+  
+  
+-- # 1321. Restaurant Growth  (window function row following/preceding)
+select 
+visited_on,amount,round(average_amount,2) average_amount from
+(select  visited_on, 
+sum(amount) over(ORDER by visited_on  ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) amount,
+avg(amount) over(ORDER  by visited_on   rows between 6 preceding and current row) average_amount ,
+count(*)       over(ORDER by visited_on rows between 6 preceding and current row) ct 
+ # ROW_NUMBER() OVER (ORDER BY visited_on) as ct # also works
+from (SELECT visited_on, SUM(amount) as amount FROM Customer GROUP BY 1)  tab
+) tab1
+where ct>=7
+-- https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver15
+  
+  
+-- # 1321. Restaurant Growth (min(count(*)) doent work, here is what you can do!)
+with tb as (select activity , 
+count(name) as ct
+ from Friends 
+ group by activity) 
+
+# opt1
+select activity from 
+(
+select activity, 
+rank() over( order by ct asc) as rk_s,
+rank() over( order by ct desc) as rk_b from tb
+) tab2
+where rk_s<>1 and rk_b<>1
+
+
+# opt2
+# select activity from 
+# (
+# select activity, 
+# case when ct = (select max(ct) from tb) or ct = (select min(ct) from tb) then 1 else 0 end flg from tb
+# ) tab2
+# where flg<>1  
+
+--  # 1364. Number of Trusted Contacts of a Customer
+ select invoice_id ,  cus.customer_name , i.price ,
+ifnull(contacts_cnt,0) contacts_cnt,
+ifnull(trusted_contacts_cnt,0)  trusted_contacts_cnt
+from Invoices  i
+left join 
+(select user_id , count(contact_name )  contacts_cnt from Contacts group by user_id) con 
+on con.user_id = i.user_id
+left join 
+(select user_id , count(customer_name) trusted_contacts_cnt from Contacts  left join Customers on customer_name = contact_name group by user_id ) cus0
+on cus0.user_id = i.user_id 
+left join Customers cus
+on cus.customer_id  = i.user_id  
+order by invoice_id
