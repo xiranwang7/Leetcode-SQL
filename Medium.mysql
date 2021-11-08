@@ -511,3 +511,58 @@ on cus0.user_id = i.user_id
 left join Customers cus
 on cus.customer_id  = i.user_id  
 order by invoice_id
+  
+  
+-- # 1393. Capital Gain/Loss  
+select stock_name , sum(sum_sell_buy) as capital_gain_loss 
+from 
+( 
+select stock_name,operation, 
+case when operation='Buy' then -sum(price) 
+when operation = 'Sell' then sum(price)  
+else 0 end as sum_sell_buy
+from  Stocks 
+group by stock_name , operation 
+    ) tab
+group by stock_name
+
+  
+-- # 1398. Customers Who Bought Products A and B but Not C  
+with tbl as ( 
+select c.customer_id  ,c.customer_name, o.product_name    from customers c
+left join Orders o
+on c.customer_id   = o.customer_id  
+)
+select A.customer_id ,A.customer_name
+from  (select  customer_id ,customer_name from tbl where product_name  ='A' ) A
+INNER JOIN 
+(select  customer_id ,customer_name from tbl where product_name  ='B' ) B
+ON A.customer_id   = B.customer_id 
+ WHERE   a.customer_id not in (select  customer_id from tbl where product_name  ='C' )
+ group by A.customer_id ,A.customer_name
+
+  
+-- # 1440. Evaluate Boolean Expression
+# method 1 use 2 'case when'
+select left_operand ,operator ,right_operand ,
+case when 
+(case when operator ='>' then  left_val>right_val  
+when operator ='<' then  left_val<right_val  
+when operator ='=' then  left_val=right_val  
+else 'false' end) =1  then'true' else 'false' end as value 
+from 
+(select  left_operand ,operator ,right_operand ,v1.value left_val,v2.value right_val from Expressions e
+left join Variables v1 on e.left_operand  = v1.name 
+left join Variables v2 on e.right_operand   = v2.name ) tab
+
+  # method 2
+# select left_operand ,operator ,right_operand ,
+# case when operator ='>' and  left_val>right_val then 'true'
+# when operator ='<' and  left_val<right_val then 'true'
+# when operator ='=' and  left_val=right_val then 'true'
+# else 'false' end as value 
+# from 
+# (select  left_operand ,operator ,right_operand ,v1.value left_val,v2.value right_val from Expressions e
+# left join Variables v1 on e.left_operand  = v1.name 
+# left join Variables v2 on e.right_operand   = v2.name ) tab
+
