@@ -566,3 +566,20 @@ left join Variables v2 on e.right_operand   = v2.name ) tab
 # left join Variables v1 on e.left_operand  = v1.name 
 # left join Variables v2 on e.right_operand   = v2.name ) tab
 
+  
+-- # 1445. Apples & Oranges 
+ select tab.sale_date, (tab.sum_ct - tab1.sum_ct)  as diff  from 
+( 
+select sale_date ,fruit , sum(sold_num) sum_ct  
+    from Sales group by  sale_date, fruit 
+having fruit='apples'
+) tab
+left join 
+( 
+select sale_date ,fruit , sum(sold_num) sum_ct  
+    from Sales group by  sale_date, fruit 
+having fruit='oranges'
+) tab1
+
+on tab.sale_date =tab1.sale_date
+
