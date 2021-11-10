@@ -587,12 +587,16 @@ on tab.sale_date =tab1.sale_date
   
 -- # 1454. Active Users (window function row following/preceding)
   
-  select distinct  a.id , a.name  from Accounts a
+select distinct  a.id , a.name  from Accounts a
 inner join 
 (select  l1.id, l1.login_date  ,
-count(l1.login_date) over(partition by l1.id order by l1.login_date RANGE between current row and INTERVAL 4 day FOLLOWING) as ct_login
-from Logins l1
+count( l1.login_date) over(partition by l1.id order by l1.login_date RANGE between current row and INTERVAL 4 day FOLLOWING) as ct_login
+from (select distinct * from Logins) l1
 ) tab
+on tab.id=a.id
+where ct_login>=5
+order by id
+
 
 on tab.id=a.id
 where ct_login>=5
