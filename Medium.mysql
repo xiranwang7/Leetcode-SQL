@@ -596,3 +596,17 @@ from Logins l1
 
 on tab.id=a.id
 where ct_login>=5
+
+-- # 1459. Rectangles Area  
+ select id_p1 as p1 , id_p2 p2, abs(x_value_p1-x_value_p2)*abs(y_value_p1-y_value_p2) as area  from 
+(
+select p1.id  id_p1, p1.x_value x_value_p1, p1.y_value y_value_p1,
+       p2.id id_p2, p2.x_value x_value_p2, p2.y_value y_value_p2 
+from Points p1,  Points p2
+where p1.id != p2.id and   p1.id < p2.id  # use p1.id < p2.id to exclude the (a,b) (b,a) situation which conisdered as dupes here 
+    and p1.x_value!=  p2.x_value and  p1.y_value!=  p2.y_value
+) tab
+
+group by p1, p2
+order by area desc, p1, p2
+
