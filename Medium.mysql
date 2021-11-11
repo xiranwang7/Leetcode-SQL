@@ -613,4 +613,25 @@ where p1.id != p2.id and   p1.id < p2.id  # use p1.id < p2.id to exclude the (a,
 
 group by p1, p2
 order by area desc, p1, p2
+  
+  
+-- # 1468. Calculate Salaries 
+select company_id, employee_id , employee_name ,
+case when salary_max <1000 then round(salary,0)
+when salary_max between 1000 and 10000 then round((1-0.24) * salary ,0)
+when salary_max>10000 then round((1-0.49)*salary,0) end as salary
+from 
+(select company_id, employee_id , employee_name ,salary,
+max(salary) over(partition by company_id ) as salary_max from Salaries) tab 
+
+
+# select s.company_id, employee_id , employee_name ,
+# case when salary_max <1000 then round(salary,0)
+# when salary_max between 1000 and 10000 then round((1-0.24) * salary ,0)
+# when salary_max>10000 then round((1-0.49)*salary,0) end as salary
+# from Salaries s
+# left join 
+# (select company_id , max(salary) salary_max from Salaries group by  company_id) c 
+# on c.company_id =s.company_id
+
 
