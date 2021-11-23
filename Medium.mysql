@@ -634,4 +634,58 @@ max(salary) over(partition by company_id ) as salary_max from Salaries) tab
 # (select company_id , max(salary) salary_max from Salaries group by  company_id) c 
 # on c.company_id =s.company_id
 
+--# 1501. Countries You Can Safely Invest In
+WITH t1 AS 
+( select cty.name, avg(duration ) as duration_avg   
+from 
+(select caller_id calls_id ,   duration  from calls
+union all # union vs union all
+select callee_id calls_id, duration  from calls
 
+) c
+left join 
+Person p on c.calls_id  = p.id 
+left join
+Country cty
+on cty.country_code = left(p.phone_number ,3)
+group by cty.name),
+t2 as  
+(select caller_id calls_id ,   duration  from calls
+union all # union vs union all
+select callee_id calls_id, duration  from calls)
+
+SELECT name AS country   FROM T1
+WHERE  duration_avg > ( SELECT AVG(duration)  FROM t2)
+
+
+-- 1549. The Most Recent Orders for Each Product 
+  SELECT   product_name, product_id ,order_id,order_date 
+FROM 
+(select p.product_id, p.product_name,O.order_id, O.order_date   ,O.customer_id ,
+ dense_rank() over(partition by p.product_id ORDER BY  O.order_date DESC  ) AS RNK
+ from Orders O 
+left join 
+ Products P on O.product_id =P.product_id    
+) TAB
+where RNK=1
+GROUP BY product_name ,product_id ,order_id
+ORDER BY product_name ,product_id, order_id
+  
+-- 1555. Bank Account Summary 
+with tab as (
+select paid_by user_id, -amount amount from Transactions
+union all 
+select paid_to user_id,  amount amount from Transactions
+)
+
+select  U.user_id ,u.user_name, sum_change + u.credit as credit,
+CASE WHEN  sum_change + u.credit  <0 THEN 'Yes' else 'No' end as credit_limit_breached 
+from Users u 
+left join 
+(select u.user_id, ifnull(sum(tab.amount) ,0) as sum_change   
+from Users u
+left join  tab  on  tab.user_id = u.user_id
+group by  u.user_id) tab2
+ on u.user_id = tab2.user_id
+ 
+ 
